@@ -6,218 +6,219 @@ import {
   TableRow,
 } from "../../ui/table";
 
-import Badge from "../../ui/badge/Badge";
+import { useEffect, useState, useMemo } from "react";
 
-interface Order {
-  id: number;
-  user: {
-    image: string;
-    name: string;
-    role: string;
-  };
-  projectName: string;
-  team: {
-    images: string[];
-  };
-  status: string;
-  budget: string;
+interface Cliente {
+  id_cliente: number;
+  cedula: string;
+  nombre: string;
+  correo: string;
+  telefono: string;
+  fecha_registro: string;
 }
 
-// Define the table data using the interface
-const tableData: Order[] = [
-  {
-    id: 1,
-    user: {
-      image: "/images/user/user-17.jpg",
-      name: "Lindsey Curtis",
-      role: "Web Designer",
-    },
-    projectName: "Agency Website",
-    team: {
-      images: [
-        "/images/user/user-22.jpg",
-        "/images/user/user-23.jpg",
-        "/images/user/user-24.jpg",
-      ],
-    },
-    budget: "3.9K",
-    status: "Active",
-  },
-  {
-    id: 2,
-    user: {
-      image: "/images/user/user-18.jpg",
-      name: "Kaiya George",
-      role: "Project Manager",
-    },
-    projectName: "Technology",
-    team: {
-      images: ["/images/user/user-25.jpg", "/images/user/user-26.jpg"],
-    },
-    budget: "24.9K",
-    status: "Pending",
-  },
-  {
-    id: 3,
-    user: {
-      image: "/images/user/user-17.jpg",
-      name: "Zain Geidt",
-      role: "Content Writing",
-    },
-    projectName: "Blog Writing",
-    team: {
-      images: ["/images/user/user-27.jpg"],
-    },
-    budget: "12.7K",
-    status: "Active",
-  },
-  {
-    id: 4,
-    user: {
-      image: "/images/user/user-20.jpg",
-      name: "Abram Schleifer",
-      role: "Digital Marketer",
-    },
-    projectName: "Social Media",
-    team: {
-      images: [
-        "/images/user/user-28.jpg",
-        "/images/user/user-29.jpg",
-        "/images/user/user-30.jpg",
-      ],
-    },
-    budget: "2.8K",
-    status: "Cancel",
-  },
-  {
-    id: 5,
-    user: {
-      image: "/images/user/user-21.jpg",
-      name: "Carla George",
-      role: "Front-end Developer",
-    },
-    projectName: "Website",
-    team: {
-      images: [
-        "/images/user/user-31.jpg",
-        "/images/user/user-32.jpg",
-        "/images/user/user-33.jpg",
-      ],
-    },
-    budget: "4.5K",
-    status: "Active",
-  },
-];
+interface ClientesTableProps {
+  reload?: boolean;
+  onEditCliente?: (cliente: Cliente) => void; // Nueva prop
+}
 
-export default function BasicTableOne() {
+export default function ClientesTable({ reload, onEditCliente }: ClientesTableProps) {
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  // 🔹 Paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  useEffect(() => {
+    const fetchClientes = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch("http://localhost:3000/api/clientes");
+        const data = await res.json();
+        setClientes(data);
+      } catch (error) {
+        console.error("Error al obtener clientes:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchClientes();
+  }, [reload]); // Agregamos reload como dependencia
+
+  // 🔹 Filtro por nombre o cédula
+  const filteredClientes = useMemo(() => {
+    return clientes.filter(
+      (c) =>
+        c.nombre.toLowerCase().includes(search.toLowerCase()) ||
+        c.cedula.includes(search)
+    );
+  }, [clientes, search]);
+
+  // 🔹 Paginación calculada
+  const totalPages = Math.ceil(filteredClientes.length / itemsPerPage);
+  const paginatedClientes = filteredClientes.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // 🔹 Función para manejar edición
+  const handleEditCliente = (cliente: Cliente) => {
+    if (onEditCliente) {
+      onEditCliente(cliente);
+    }
+  };
+
+  if (loading) {
+    return <p className="text-center text-gray-600">Cargando clientes...</p>;
+  }
+
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-4">
+      {/* 🔍 Buscador */}
+      <div className="mb-4 flex justify-between items-center">
+        <div className="relative w-80">
+          {/* Icono de búsqueda */}
+          <span className="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2">
+            <svg
+              className="fill-gray-500 dark:fill-gray-400"
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
+              />
+            </svg>
+          </span>
+
+          {/* Campo de búsqueda */}
+          <input
+            type="text"
+            placeholder="Buscar por Nombre o Cédula"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-4 text-sm text-gray-800 shadow-theme-xs
+                 placeholder:text-gray-400 focus:border-blue-400 focus:outline-none focus:ring focus:ring-blue-300/10
+                 dark:border-gray-800 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/40 dark:focus:border-blue-800"
+          />
+        </div>
+
+        {/* Contador de resultados */}
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          {filteredClientes.length} resultado(s)
+        </span>
+      </div>
+
+
+      {/* 📋 Tabla */}
       <div className="max-w-full overflow-x-auto">
-        <div className="min-w-[1102px]">
+        <div className="min-w-[900px]">
           <Table>
-            {/* Table Header */}
             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
               <TableRow>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  User
+                <TableCell isHeader className="px-5 py-4 text-lg font-medium text-start text-theme-md dark:text-white/90">
+                  Nombre
                 </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Project Name
+                <TableCell isHeader className="px-5 py-4 text-lg font-medium text-start text-theme-md dark:text-white/90">
+                  Cédula
                 </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Team
+                <TableCell isHeader className="px-5 py-4 text-lg font-medium text-start text-theme-md dark:text-white/90">
+                  Correo
                 </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Status
+                <TableCell isHeader className="px-5 py-4 text-lg font-medium text-start text-theme-md dark:text-white/90">
+                  Teléfono
                 </TableCell>
-                <TableCell
-                  isHeader
-                  className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
-                >
-                  Budget
+                <TableCell isHeader className="px-5 py-4 text-lg font-medium text-start text-theme-md dark:text-white/90">
+                  Fecha Registro
+                </TableCell>
+                <TableCell isHeader className="px-5 py-4 text-lg font-medium text-start text-theme-md dark:text-white/90">
+                  Acciones
                 </TableCell>
               </TableRow>
             </TableHeader>
 
-            {/* Table Body */}
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {tableData.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="px-5 py-4 sm:px-6 text-start">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 overflow-hidden rounded-full">
-                        <img
-                          width={40}
-                          height={40}
-                          src={order.user.image}
-                          alt={order.user.name}
-                        />
-                      </div>
-                      <div>
-                        <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                          {order.user.name}
-                        </span>
-                        <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
-                          {order.user.role}
-                        </span>
-                      </div>
-                    </div>
+              {paginatedClientes.map((cliente) => (
+                <TableRow key={cliente.id_cliente}>
+                  <TableCell className="px-5 py-4 font-medium text-gray-600 dark:text-white/90 align-middle">
+                    {cliente.nombre}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    {order.projectName}
+                  <TableCell className="px-5 py-4 text-gray-600 dark:text-gray-400 align-middle">
+                    {cliente.cedula}
                   </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    <div className="flex -space-x-2">
-                      {order.team.images.map((teamImage, index) => (
-                        <div
-                          key={index}
-                          className="w-6 h-6 overflow-hidden border-2 border-white rounded-full dark:border-gray-900"
+                  <TableCell className="px-5 py-4 text-gray-600 dark:text-gray-400 align-middle">
+                    {cliente.correo}
+                  </TableCell>
+                  <TableCell className="px-5 py-4 text-gray-600 dark:text-gray-400 align-middle">
+                    {cliente.telefono}
+                  </TableCell>
+                  <TableCell className="px-5 py-4 text-gray-600 dark:text-gray-400 align-middle">
+                    {new Date(cliente.fecha_registro).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="px-5 py-4 align-middle">
+                    <div className="flex items-center justify-start h-full">
+                      {/* Botón Editar */}
+                      <button
+                        onClick={() => handleEditCliente(cliente)}
+                        className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-yellow-600 bg-yellow-50 rounded-lg hover:bg-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400 dark:hover:bg-yellow-900/30 transition-colors whitespace-nowrap"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          <img
-                            width={24}
-                            height={24}
-                            src={teamImage}
-                            alt={`Team member ${index + 1}`}
-                            className="w-full size-6"
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                           />
-                        </div>
-                      ))}
+                        </svg>
+                        Editar
+                      </button>
                     </div>
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                    <Badge
-                      size="sm"
-                      color={
-                        order.status === "Active"
-                          ? "success"
-                          : order.status === "Pending"
-                          ? "warning"
-                          : "error"
-                      }
-                    >
-                      {order.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                    {order.budget}
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
+      </div>
+
+      {/* 🔸 Paginación */}
+      <div className="flex justify-center items-center gap-3 mt-4">
+        <button
+          onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+          disabled={currentPage === 1}
+          className="px-4 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 
+               hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed
+               dark:border-gray-700 dark:bg-white/[0.05] dark:text-gray-200 dark:hover:bg-white/[0.1]"
+        >
+          ← Anterior
+        </button>
+
+        <span className="text-sm text-gray-700 dark:text-gray-400">
+          Página {currentPage} de {totalPages || 1}
+        </span>
+
+        <button
+          onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 text-sm rounded-lg border border-gray-300 bg-white text-gray-700 
+               hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed
+               dark:border-gray-700 dark:bg-white/[0.05] dark:text-gray-200 dark:hover:bg-white/[0.1]"
+        >
+          Siguiente →
+        </button>
       </div>
     </div>
   );
