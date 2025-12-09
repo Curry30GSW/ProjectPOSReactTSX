@@ -39,6 +39,8 @@ export default function ModalCrearCliente({
         message: string;
     }>({ show: false, variant: "success", title: "", message: "" });
 
+
+
     // Cargar datos cuando se abre el modal
     useEffect(() => {
         if (isOpen) {
@@ -56,6 +58,30 @@ export default function ModalCrearCliente({
             }
         }
     }, [isOpen, modo, clienteEditando]);
+
+    // Evitar scroll del body cuando el modal esté abierto y corregir salto de layout
+    useEffect(() => {
+        const restoreBody = (prevOverflow: string, prevPaddingRight: string) => {
+            document.body.style.overflow = prevOverflow || "";
+            document.body.style.paddingRight = prevPaddingRight || "";
+        };
+
+        if (typeof window === "undefined") return;
+
+        const prevOverflow = document.body.style.overflow;
+        const prevPaddingRight = document.body.style.paddingRight;
+
+        if (isOpen) {
+            // calcular ancho del scrollbar para evitar salto horizontal
+            const scrollBarComp = window.innerWidth - document.documentElement.clientWidth;
+            document.body.style.overflow = "hidden";
+            if (scrollBarComp > 0) document.body.style.paddingRight = `${scrollBarComp}px`;
+        } else {
+            restoreBody(prevOverflow, prevPaddingRight);
+        }
+
+        return () => restoreBody(prevOverflow, prevPaddingRight);
+    }, [isOpen]);
 
     useEffect(() => {
         if (alertData.show) {

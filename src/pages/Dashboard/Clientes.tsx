@@ -2,7 +2,7 @@ import { useState } from "react";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageMeta from "../../components/common/PageMeta";
-import BasicTableOne from "../../components/tables/BasicTables/BasicTableOne";
+import BasicTableOne from "../../components/tables/BasicTables/BasicTableCliente";
 import ModalCrearCliente from "../../components/modals/modalCrearCliente";
 
 // Interfaz para el Cliente
@@ -68,6 +68,8 @@ export default function ClientesPage() {
         clienteEditando={clienteEditando}
         modo={modo}
       />
+
+
     </>
   );
 }

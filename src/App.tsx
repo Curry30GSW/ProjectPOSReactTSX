@@ -19,19 +19,67 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import Clientes from "./pages/Dashboard/Clientes";
+import Proveedor from "./pages/Dashboard/Proveedor";
+import Articulo from "./pages/Dashboard/Articulos";
+import Empleado from "./pages/Dashboard/Empleados";
+import Caja from "./pages/Dashboard/Caja";
+import { ToastContainer } from "react-toastify";
+
+import "react-toastify/dist/ReactToastify.css";
 
 export default function App() {
   return (
     <>
       <Router>
+
         <ScrollToTop />
+        <ToastContainer
+          position="top-center"
+          autoClose={1500}
+          hideProgressBar={true}
+          closeOnClick
+          pauseOnHover
+          draggable={false}
+
+          theme="colored"
+
+          toastStyle={{
+            width: "650px",
+            maxWidth: "90%",
+
+            backgroundColor: "#333",
+            color: "#fff",
+
+            borderRadius: "16px",
+            padding: "25px 30px",
+            fontSize: "18px",
+
+            textAlign: "center",
+            boxShadow: "0px 10px 40px rgba(0,0,0,0.3)",
+          }}
+
+
+
+        />
+
+
         <Routes>
+
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>
             <Route index path="/" element={<Home />} />
 
             {/* Clientes */}
             <Route path="/clientes" element={<Clientes />} />
+            {/* Proveedor */}
+            <Route path="/proveedores" element={<Proveedor />} />
+            {/* Articulos */}
+            <Route path="/articulos" element={<Articulo />} />
+            {/*Empleados */}
+            <Route path="/empleados" element={<Empleado />} />
+
+            {/*Caja */}
+            <Route path="/caja" element={<Caja />} />
 
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />

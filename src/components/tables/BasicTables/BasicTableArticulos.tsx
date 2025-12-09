@@ -8,70 +8,79 @@ import {
 
 import { useEffect, useState, useMemo } from "react";
 
-interface Cliente {
-  id_cliente: number;
-  cedula: string;
-  nombre: string;
-  correo: string;
-  telefono: string;
-  fecha_registro: string;
+interface Articulo {
+  id_articulo: number;
+  descripcion: string;
+  precio: string;
+  stock: number;
+  peso: number;
+  codigo_barras: string;
 }
 
-interface ClientesTableProps {
+interface ArticuloTableProps {
   reload?: boolean;
-  onEditCliente?: (cliente: Cliente) => void; // Nueva prop
+  onEditArticulo?: (articulo: Articulo) => void; // Nueva prop
 }
 
-export default function ClientesTable({ reload, onEditCliente }: ClientesTableProps) {
-  const [clientes, setClientes] = useState<Cliente[]>([]);
+export default function ArticuloTable({ reload, onEditArticulo }: ArticuloTableProps) {
+  const [articulos, setArticulos] = useState<Articulo[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // 🔹 Paginación
+  // Paginación
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
   useEffect(() => {
-    const fetchClientes = async () => {
+    const fetchArticulos = async () => {
       try {
         setLoading(true);
-        const res = await fetch("http://localhost:3000/api/clientes");
+        const res = await fetch("http://localhost:3000/api/articulos");
         const data = await res.json();
-        setClientes(data);
+        setArticulos(data);
       } catch (error) {
-        console.error("Error al obtener clientes:", error);
+        console.error("Error al obtener proveedores:", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchClientes();
+    fetchArticulos();
   }, [reload]); // Agregamos reload como dependencia
 
-  // 🔹 Filtro por nombre o cédula
-  const filteredClientes = useMemo(() => {
-    return clientes.filter(
+  //  Filtro por nombre o cédula
+  const filteredArticulos = useMemo(() => {
+    return articulos.filter(
       (c) =>
-        c.nombre.toLowerCase().includes(search.toLowerCase()) ||
-        c.cedula.includes(search)
+        c.descripcion.toLowerCase().includes(search.toLowerCase()) ||
+        c.precio.toString().includes(search)
     );
-  }, [clientes, search]);
+  }, [articulos, search]);
 
-  // 🔹 Paginación calculada
-  const totalPages = Math.ceil(filteredClientes.length / itemsPerPage);
-  const paginatedClientes = filteredClientes.slice(
+  //  Paginación calculada
+  const totalPages = Math.ceil(filteredArticulos.length / itemsPerPage);
+  const paginatedArticulos = filteredArticulos.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  // 🔹 Función para manejar edición
-  const handleEditCliente = (cliente: Cliente) => {
-    if (onEditCliente) {
-      onEditCliente(cliente);
+  //  Función para manejar edición
+  const handleEditArticulo = (articulo: Articulo) => {
+    if (onEditArticulo) {
+      onEditArticulo(articulo);
     }
   };
 
+
+  const formatPrecio = (valor: number) => {
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 0,
+    }).format(valor);
+  };
+
   if (loading) {
-    return <p className="text-center text-gray-600">Cargando clientes...</p>;
+    return <p className="text-center text-gray-600">Cargando Articulos...</p>;
   }
 
   return (
@@ -99,7 +108,7 @@ export default function ClientesTable({ reload, onEditCliente }: ClientesTablePr
           {/* Campo de búsqueda */}
           <input
             type="text"
-            placeholder="Buscar por Nombre o Cédula"
+            placeholder="Buscar por descripcion o Precio"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -113,7 +122,7 @@ export default function ClientesTable({ reload, onEditCliente }: ClientesTablePr
 
         {/* Contador de resultados */}
         <span className="text-sm text-gray-500 dark:text-gray-400">
-          {filteredClientes.length} resultado(s)
+          {filteredArticulos.length} resultado(s)
         </span>
       </div>
 
@@ -125,19 +134,19 @@ export default function ClientesTable({ reload, onEditCliente }: ClientesTablePr
             <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
               <TableRow>
                 <TableCell isHeader className="px-5 py-4 text-lg font-medium text-start text-theme-md dark:text-white/90">
-                  Nombre
+                  Descripcion
                 </TableCell>
                 <TableCell isHeader className="px-5 py-4 text-lg font-medium text-start text-theme-md dark:text-white/90">
-                  Cédula
+                  Precio
                 </TableCell>
                 <TableCell isHeader className="px-5 py-4 text-lg font-medium text-start text-theme-md dark:text-white/90">
-                  Correo
+                  Stock
                 </TableCell>
                 <TableCell isHeader className="px-5 py-4 text-lg font-medium text-start text-theme-md dark:text-white/90">
-                  Teléfono
+                  Peso
                 </TableCell>
                 <TableCell isHeader className="px-5 py-4 text-lg font-medium text-start text-theme-md dark:text-white/90">
-                  Fecha Registro
+                  Codigo Barras
                 </TableCell>
                 <TableCell isHeader className="px-5 py-4 text-lg font-medium text-start text-theme-md dark:text-white/90">
                   Acciones
@@ -146,28 +155,35 @@ export default function ClientesTable({ reload, onEditCliente }: ClientesTablePr
             </TableHeader>
 
             <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-              {paginatedClientes.map((cliente) => (
-                <TableRow key={cliente.id_cliente}>
+              {paginatedArticulos.map((articulo) => (
+                <TableRow key={articulo.id_articulo}>
                   <TableCell className="px-5 py-4 font-medium text-gray-600 dark:text-white/90 align-middle">
-                    {cliente.nombre}
+                    {articulo.descripcion}
                   </TableCell>
                   <TableCell className="px-5 py-4 text-gray-600 dark:text-gray-400 align-middle">
-                    {cliente.cedula}
+                    {formatPrecio(parseFloat(articulo.precio))}
+                  </TableCell>
+                  <TableCell
+                    className={`px-5 py-4 font-medium align-middle 
+                           ${articulo.stock <= 0
+                        ? "text-red-600 dark:text-red-400"
+                        : "text-gray-600 dark:text-gray-400"
+                      }`}
+                  >
+                    {articulo.stock}
+                  </TableCell>
+
+                  <TableCell className="px-5 py-4 text-gray-600 dark:text-gray-400 align-middle">
+                    {articulo.peso}
                   </TableCell>
                   <TableCell className="px-5 py-4 text-gray-600 dark:text-gray-400 align-middle">
-                    {cliente.correo}
-                  </TableCell>
-                  <TableCell className="px-5 py-4 text-gray-600 dark:text-gray-400 align-middle">
-                    {cliente.telefono}
-                  </TableCell>
-                  <TableCell className="px-5 py-4 text-gray-600 dark:text-gray-400 align-middle">
-                    {new Date(cliente.fecha_registro).toLocaleDateString()}
+                    {articulo.codigo_barras}
                   </TableCell>
                   <TableCell className="px-5 py-4 align-middle">
                     <div className="flex items-center justify-start h-full">
                       {/* Botón Editar */}
                       <button
-                        onClick={() => handleEditCliente(cliente)}
+                        onClick={() => handleEditArticulo(articulo)}
                         className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-yellow-600 bg-yellow-50 rounded-lg hover:bg-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400 dark:hover:bg-yellow-900/30 transition-colors whitespace-nowrap"
                       >
                         <svg
