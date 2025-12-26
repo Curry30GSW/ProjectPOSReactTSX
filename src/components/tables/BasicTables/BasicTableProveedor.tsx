@@ -7,6 +7,7 @@ import {
 } from "../../ui/table";
 
 import { useEffect, useState, useMemo } from "react";
+import { fetchWithAuth } from "../../api/fetchWithAuth";
 
 interface Proveedor {
   id_proveedor: number;
@@ -35,7 +36,7 @@ export default function ProveedorTable({ reload, onEditProveedor }: ProveedorTab
     const fetchProveedores = async () => {
       try {
         setLoading(true);
-        const res = await fetch("http://localhost:3000/api/proveedores");
+        const res = await fetchWithAuth("http://localhost:3000/api/proveedores");
         const data = await res.json();
         setProveedor(data);
       } catch (error) {
@@ -165,7 +166,7 @@ export default function ProveedorTable({ reload, onEditProveedor }: ProveedorTab
                   </TableCell>
                   <TableCell className="px-5 py-4 align-middle">
                     <div className="flex items-center justify-start h-full">
-                      {/* Botón Editar */}  
+                      {/* Botón Editar */}
                       <button
                         onClick={() => handleEditProveedor(proveedor)}
                         className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-yellow-600 bg-yellow-50 rounded-lg hover:bg-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400 dark:hover:bg-yellow-900/30 transition-colors whitespace-nowrap"

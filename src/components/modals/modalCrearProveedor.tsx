@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Alert from "../ui/alert/Alert";
 import { Modal } from "../ui/modal";
+import { fetchWithAuth } from "../api/fetchWithAuth";
 
 interface Proveedor {
     id_proveedor?: number,
@@ -12,19 +13,19 @@ interface Proveedor {
 }
 
 interface ModalCrearProveedorProps {
-    isOpen : boolean;
+    isOpen: boolean;
     onClose: () => void;
     onProveedorCreado: () => void;
-    proveedorEditando ? : Proveedor | null;
-    modo?: 'crear'| 'editar'
-}   
+    proveedorEditando?: Proveedor | null;
+    modo?: 'crear' | 'editar'
+}
 
 export default function ModalCrearProveedor({
-           isOpen,
-            onClose,
-            onProveedorCreado,
-            proveedorEditando = null,
-            modo = 'crear'
+    isOpen,
+    onClose,
+    onProveedorCreado,
+    proveedorEditando = null,
+    modo = 'crear'
 }: ModalCrearProveedorProps) {
     const [proveedor, setProveedor] = useState<Proveedor>({
         nombre: "",
@@ -39,7 +40,7 @@ export default function ModalCrearProveedor({
         variant: "success" | "error";
         title: string;
         message: string,
-    }> ({show: false, variant: "success", title: "", message: ""});
+    }>({ show: false, variant: "success", title: "", message: "" });
 
 
     // Cargar datos cuando se abre el modal
@@ -61,24 +62,24 @@ export default function ModalCrearProveedor({
         }
     }, [isOpen, modo, proveedorEditando]);
 
-    useEffect(()  => {
+    useEffect(() => {
         if (alertData.show) {
             const timer = setTimeout(() => {
-                setAlertData({ ...alertData, show: false})
+                setAlertData({ ...alertData, show: false })
             }, 3000)
-             return () => clearTimeout(timer)
+            return () => clearTimeout(timer)
         }
     }, [alertData])
 
-    const handleChange = (e :  React.ChangeEvent<HTMLInputElement>) => {
-        setProveedor({...proveedor, [e.target.name]: e.target.value })
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setProveedor({ ...proveedor, [e.target.name]: e.target.value })
     }
 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         try {
-              let url: string;
+            let url: string;
             let method: string;
 
             if (modo === 'crear') {
@@ -91,17 +92,14 @@ export default function ModalCrearProveedor({
                 method = "PUT";
             }
 
-            const res = await fetch(url, {
+            const res = await fetchWithAuth(url, {
                 method: method,
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(proveedor),
             });
 
             if (res.ok) {
-                onProveedorCreado(); // Actualizamos la tabla
-                onClose(); // Cerramos el modal
-
-                // Mostramos el alert después de un pequeño delay
+                onProveedorCreado();
+                onClose();
                 setTimeout(() => {
                     setAlertData({
                         show: true,
@@ -126,7 +124,7 @@ export default function ModalCrearProveedor({
                 });
             }
         } catch (err) {
-            if (err instanceof Error){
+            if (err instanceof Error) {
                 setAlertData({
                     show: true,
                     variant: "error",
@@ -145,10 +143,10 @@ export default function ModalCrearProveedor({
     };
 
 
-  if (!isOpen) {
+    if (!isOpen) {
         // Mantenemos el alert visible incluso cuando el modal está cerrado
         return alertData.show ? (
-            <div className="fixed bottom-4 right-4 z-[100001] w-96 animate-fade-in-up">
+            <div className="fixed bottom-4 right-4 z-[100000] w-96 animate-fade-in-up">
                 <Alert
                     variant={alertData.variant}
                     title={alertData.title}
@@ -165,7 +163,7 @@ export default function ModalCrearProveedor({
         <>
             {/* 🔔 Alert flotante */}
             {alertData.show && (
-                <div className="fixed bottom-4 right-4 z-[100001] w-96 animate-fade-in-up">
+                <div className="fixed bottom-4 right-4 z-[100000] w-96 animate-fade-in-up">
                     <Alert
                         variant={alertData.variant}
                         title={alertData.title}

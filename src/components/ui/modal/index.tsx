@@ -8,6 +8,7 @@ interface ModalProps {
   children: React.ReactNode;
   showCloseButton?: boolean;
   isFullscreen?: boolean;
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
 export const Modal: React.FC<ModalProps> = ({
@@ -15,10 +16,18 @@ export const Modal: React.FC<ModalProps> = ({
   onClose,
   children,
   className = "",
-  showCloseButton = true,
+  showCloseButton = false,
   isFullscreen = false,
+  size = "md",
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
+
+  const sizeClasses = {
+    sm: "max-w-md",
+    md: "max-w-lg",
+    lg: "max-w-3xl",
+    xl: "max-w-5xl"
+  };
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -28,13 +37,20 @@ export const Modal: React.FC<ModalProps> = ({
     if (isOpen) {
       document.addEventListener("keydown", handleEscape);
       document.body.style.overflow = "hidden";
+      // Prevenir scroll del body
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
     } else {
       document.body.style.overflow = "unset";
+      document.body.style.position = "";
+      document.body.style.width = "";
     }
 
     return () => {
       document.removeEventListener("keydown", handleEscape);
       document.body.style.overflow = "unset";
+      document.body.style.position = "";
+      document.body.style.width = "";
     };
   }, [isOpen, onClose]);
 
@@ -42,62 +58,41 @@ export const Modal: React.FC<ModalProps> = ({
     <AnimatePresence>
       {isOpen && (
         <div
-          className="fixed inset-0 z-[100000] flex items-center justify-center"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
           aria-modal="true"
           role="dialog"
         >
-          {/* Fondo con transición */}
+          {/* Fondo */}
           <motion.div
-            className="fixed inset-0 bg-gray-500/75 dark:bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
+            transition={{ duration: 0.15 }}
+            style={{ zIndex: 999998 }} // Un poco menos que el contenedor
           />
 
           {/* Contenedor del modal */}
           <motion.div
             ref={modalRef}
-            className={`relative ${isFullscreen
-              ? "w-full h-full"
-              : "w-full max-w-lg mx-4 sm:my-8"
-              } transform overflow-hidden rounded-2xl bg-white text-left shadow-xl dark:bg-gray-900 transition-all ${className}`}
-            initial={{ opacity: 0, scale: 0.95, y: 30 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
+            className={`relative ${isFullscreen ? "w-full h-full" : `w-full ${sizeClasses[size]}`
+              } bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden ${className}`}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{
+              duration: 0.2,
+              ease: "easeOut"
+            }}
             onClick={(e) => e.stopPropagation()}
+            style={{ zIndex: 999999 }} // El más alto
           >
-            {/* Botón de cerrar */}
-            {showCloseButton && (
-              <button
-                onClick={onClose}
-                className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-5 h-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            )}
-
             {/* Contenido */}
-            <div className="p-6">{children}</div>
+            <div className="max-h-[90vh] overflow-y-auto p-6">{children}</div>
           </motion.div>
         </div>
       )}
     </AnimatePresence>
   );
 };
-
-

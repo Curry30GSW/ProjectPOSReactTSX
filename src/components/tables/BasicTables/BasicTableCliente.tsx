@@ -7,7 +7,7 @@ import {
 } from "../../ui/table";
 
 import { useEffect, useState, useMemo } from "react";
-
+import { fetchWithAuth } from "../../api/fetchWithAuth";
 interface Cliente {
   id_cliente: number;
   cedula: string;
@@ -36,7 +36,7 @@ export default function ClientesTable({ reload, onEditCliente }: ClientesTablePr
     const fetchClientes = async () => {
       try {
         setLoading(true);
-        const res = await fetch("http://localhost:3000/api/clientes");
+        const res = await fetchWithAuth("http://localhost:3000/api/clientes");
         const data = await res.json();
         setClientes(data);
       } catch (error) {

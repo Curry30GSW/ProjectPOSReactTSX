@@ -23,11 +23,28 @@ import Proveedor from "./pages/Dashboard/Proveedor";
 import Articulo from "./pages/Dashboard/Articulos";
 import Empleado from "./pages/Dashboard/Empleados";
 import Caja from "./pages/Dashboard/Caja";
+import CierreCaja from "./pages/Dashboard/CierreCaja";
+import Facturas from "./pages/Dashboard/Facturas";
 import { ToastContainer } from "react-toastify";
-
+import ProtectedRoute from "./components/ProtectedRoute";
+import { useEffect } from "react";
 import "react-toastify/dist/ReactToastify.css";
 
+
 export default function App() {
+
+  useEffect(() => {
+    const handleLogout = () => {
+      navigate("/signin")
+    }
+    window.addEventListener("logout", handleLogout)
+
+
+    return () => window.removeEventListener("logout", handleLogout)
+  })
+
+
+
   return (
     <>
       <Router>
@@ -67,19 +84,40 @@ export default function App() {
 
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>
-            <Route index path="/" element={<Home />} />
+            <Route index path="/" element={<ProtectedRoute>
+              <Home />
+            </ProtectedRoute>} />
 
             {/* Clientes */}
-            <Route path="/clientes" element={<Clientes />} />
+            <Route path="/clientes" element={<ProtectedRoute>
+              <Clientes />
+            </ProtectedRoute>} />
             {/* Proveedor */}
-            <Route path="/proveedores" element={<Proveedor />} />
+            <Route path="/proveedores" element={<ProtectedRoute>
+              <Proveedor />
+            </ProtectedRoute>} />
             {/* Articulos */}
-            <Route path="/articulos" element={<Articulo />} />
+            <Route path="/articulos" element={<ProtectedRoute>
+              <Articulo />
+            </ProtectedRoute>} />
             {/*Empleados */}
-            <Route path="/empleados" element={<Empleado />} />
+            <Route path="/empleados" element={<ProtectedRoute>
+              <Empleado />
+            </ProtectedRoute>} />
+            {/*Cierre Caja */}
+            <Route path="/cierre" element={<ProtectedRoute>
+              <CierreCaja />
+            </ProtectedRoute>} />
+
+            {/*Factura */}
+            <Route path="/facturas" element={<ProtectedRoute>
+              <Facturas />
+            </ProtectedRoute>} />
 
             {/*Caja */}
-            <Route path="/caja" element={<Caja />} />
+            <Route path="/caja" element={<ProtectedRoute>
+              <Caja />
+            </ProtectedRoute>} />
 
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
@@ -102,7 +140,9 @@ export default function App() {
 
             {/* Charts */}
             <Route path="/line-chart" element={<LineChart />} />
-            <Route path="/bar-chart" element={<BarChart />} />
+            <Route path="/estadisticas" element={<ProtectedRoute>
+              <BarChart />
+            </ProtectedRoute>} />
           </Route>
 
           {/* Auth Layout */}
@@ -110,7 +150,9 @@ export default function App() {
           <Route path="/signup" element={<SignUp />} />
 
           {/* Fallback Route */}
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<ProtectedRoute>
+            <NotFound />
+          </ProtectedRoute>} />
 
 
         </Routes>

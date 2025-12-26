@@ -1,34 +1,35 @@
 import { useState, useEffect } from "react";
 import Alert from "../ui/alert/Alert";
 import { Modal } from "../ui/modal";
+import { fetchWithAuth } from "../api/fetchWithAuth";
 
 interface Articulo {
     id_articulo?: number;
-  descripcion: string;
-  precio: string;
-  stock: string;
-  peso: string;
-  codigo_barras: string; 
+    descripcion: string;
+    precio: string;
+    stock: string;
+    peso: string;
+    codigo_barras: string;
 
 }
 
 interface ModalCrearArticuloProps {
-    isOpen : boolean;
+    isOpen: boolean;
     onClose: () => void;
     onArticuloCreado: () => void;
-    articuloEditando ? : Articulo | null; 
-    modo?: 'crear'| 'editar'
-}   
+    articuloEditando?: Articulo | null;
+    modo?: 'crear' | 'editar'
+}
 
 export default function ModalCrearArticulo({
-           isOpen,
-            onClose,
-            onArticuloCreado,
-            articuloEditando = null,
-            modo = 'crear'
+    isOpen,
+    onClose,
+    onArticuloCreado,
+    articuloEditando = null,
+    modo = 'crear'
 }: ModalCrearArticuloProps) {
     const [articulo, setArticulo] = useState<Articulo>({
-       
+
         descripcion: "",
         precio: "",
         stock: "",
@@ -42,7 +43,7 @@ export default function ModalCrearArticulo({
         variant: "success" | "error";
         title: string;
         message: string,
-    }> ({show: false, variant: "success", title: "", message: ""});
+    }>({ show: false, variant: "success", title: "", message: "" });
 
 
     // Cargar datos cuando se abre el modal
@@ -64,29 +65,29 @@ export default function ModalCrearArticulo({
         }
     }, [isOpen, modo, articuloEditando]);
 
-    useEffect(()  => {
+    useEffect(() => {
         if (alertData.show) {
             const timer = setTimeout(() => {
-                setAlertData({ ...alertData, show: false})
+                setAlertData({ ...alertData, show: false })
             }, 3000)
-             return () => clearTimeout(timer)
+            return () => clearTimeout(timer)
         }
     }, [alertData])
 
-    const handleChange = (e :  React.ChangeEvent<HTMLInputElement>) => {
-        setArticulo({...articulo, [e.target.name]: e.target.value })
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setArticulo({ ...articulo, [e.target.name]: e.target.value })
     }
 
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         try {
-              let url: string;
+            let url: string;
             let method: string;
 
             if (modo === 'crear') {
                 // Crear nuevo cliente
-                url = "http://localhost:3000/api/insertar-articulos";   
+                url = "http://localhost:3000/api/insertar-articulos";
                 method = "POST";
             } else {
                 // Editar cliente existente
@@ -94,15 +95,16 @@ export default function ModalCrearArticulo({
                 method = "PUT";
             }
 
-            const res = await fetch(url, {
-                method: method,
-                headers: { "Content-Type": "application/json" },
+
+            const res = await fetchWithAuth(url, {
+                method,
+
                 body: JSON.stringify(articulo),
             });
 
             if (res.ok) {
-                onArticuloCreado(); // Actualizamos la tabla
-                onClose(); // Cerramos el modal
+                onArticuloCreado();
+                onClose();
 
                 // Mostramos el alert después de un pequeño delay
                 setTimeout(() => {
@@ -129,7 +131,7 @@ export default function ModalCrearArticulo({
                 });
             }
         } catch (err) {
-            if (err instanceof Error){
+            if (err instanceof Error) {
                 setAlertData({
                     show: true,
                     variant: "error",
@@ -148,10 +150,10 @@ export default function ModalCrearArticulo({
     };
 
 
-  if (!isOpen) {
+    if (!isOpen) {
         // Mantenemos el alert visible incluso cuando el modal está cerrado
         return alertData.show ? (
-            <div className="fixed bottom-4 right-4 z-[100001] w-96 animate-fade-in-up">
+            <div className="fixed bottom-4 right-4 z-[100000] w-96 animate-fade-in-up">
                 <Alert
                     variant={alertData.variant}
                     title={alertData.title}
@@ -168,7 +170,7 @@ export default function ModalCrearArticulo({
         <>
             {/* 🔔 Alert flotante */}
             {alertData.show && (
-                <div className="fixed bottom-4 right-4 z-[100001] w-96 animate-fade-in-up">
+                <div className="fixed bottom-4 right-4 z-[100000] w-96 animate-fade-in-up">
                     <Alert
                         variant={alertData.variant}
                         title={alertData.title}
@@ -234,7 +236,7 @@ export default function ModalCrearArticulo({
                                 Peso
                             </label>
                             <input
-                                type="text" 
+                                type="text"
                                 name="peso"
                                 value={articulo.peso}
                                 onChange={handleChange}
@@ -244,12 +246,12 @@ export default function ModalCrearArticulo({
                         </div>
 
                         <div>
-                                <label className="block text-sm text-gray-600 dark:text-gray-300">
+                            <label className="block text-sm text-gray-600 dark:text-gray-300">
                                 Codigo Barras
                             </label>
 
                             <input
-                                type="text" 
+                                type="text"
                                 name="codigo_barras"
                                 value={articulo.codigo_barras}
                                 onChange={handleChange}

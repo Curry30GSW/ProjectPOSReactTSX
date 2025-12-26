@@ -638,3 +638,21 @@ span.flatpickr-weekday,
     @apply bg-background text-foreground;
   }
 }
+
+
+
+/* ApexCharts toolbar menu - Dark Mode */
+.dark .apexcharts-menu {
+    background-color: #1f2937; 
+    border: 1px solid #374151; 
+}
+
+.dark .apexcharts-menu-item {
+    color: #e5e7eb; 
+}
+
+.dark .apexcharts-menu-item:hover {
+    background-color: #374151; 
+}
+
+

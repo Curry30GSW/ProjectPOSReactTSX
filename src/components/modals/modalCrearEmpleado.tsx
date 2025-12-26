@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Alert from "../ui/alert/Alert";
 import { Modal } from "../ui/modal";
+import { fetchWithAuth } from "../api/fetchWithAuth";
 
 interface Empleado {
     id_empleado?: number;
@@ -56,14 +57,12 @@ export default function ModalCrearCliente({
     useEffect(() => {
         if (isOpen) {
             if (isEdit && empleadoEditando) {
-                // Modo editar: cargar datos del cliente
                 setEmpleado({
                     ...empleadoEditando,
                     password: ""
                 },
                 );
             } else {
-                // Modo crear: limpiar formulario
                 setEmpleado({
                     cedula: "",
                     nombres: "",
@@ -113,17 +112,15 @@ export default function ModalCrearCliente({
                 delete payload.password;
             }
 
-            const res = await fetch(url, {
+            const res = await fetchWithAuth(url, {
                 method: method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(empleado),
             });
 
             if (res.ok) {
-                onEmpleadoCreado(); // Actualizamos la tabla
-                onClose(); // Cerramos el modal
-
-                // Mostramos el alert después de un pequeño delay
+                onEmpleadoCreado();
+                onClose();
                 setTimeout(() => {
                     setAlertData({
                         show: true,
@@ -169,7 +166,7 @@ export default function ModalCrearCliente({
     if (!isOpen) {
         // Mantenemos el alert visible incluso cuando el modal está cerrado
         return alertData.show ? (
-            <div className="fixed bottom-4 right-4 z-[100001] w-96 animate-fade-in-up">
+            <div className="fixed bottom-4 right-4 z-[100000] w-96 animate-fade-in-up">
                 <Alert
                     variant={alertData.variant}
                     title={alertData.title}
@@ -184,7 +181,7 @@ export default function ModalCrearCliente({
         <>
             {/* 🔔 Alert flotante */}
             {alertData.show && (
-                <div className="fixed bottom-4 right-4 z-[100001] w-96 animate-fade-in-up">
+                <div className="fixed bottom-4 right-4 z-[100000] w-96 animate-fade-in-up">
                     <Alert
                         variant={alertData.variant}
                         title={alertData.title}

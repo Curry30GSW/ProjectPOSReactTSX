@@ -7,6 +7,7 @@ import {
 } from "../../ui/table";
 
 import { useEffect, useState, useMemo } from "react";
+import { fetchWithAuth } from "../../api/fetchWithAuth";
 
 interface Empleado {
   id_empleado: number;
@@ -38,7 +39,7 @@ export default function EmpleadoTable({ reload, onEditEmpleado }: EmpleadoTableP
     const fetchEmpleados = async () => {
       try {
         setLoading(true);
-        const res = await fetch("http://localhost:3000/api/empleados");
+        const res = await fetchWithAuth("http://localhost:3000/api/empleados");
         const data = await res.json();
         setEmpleado(data);
       } catch (error) {

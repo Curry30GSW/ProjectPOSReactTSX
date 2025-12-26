@@ -1,29 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
-// import { Link } from "react-router";
 import { useNavigate } from "react-router";
-import { toast } from "react-toastify"
+
+import Swal from "sweetalert2"
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const [userName, setUserName] = useState("Usuario");
 
 
   const handleLogout = async () => {
-    sessionStorage.removeItem("token")
-    sessionStorage.removeItem("user")
-
-    toast.info("Cerrar sesion", {
-      autoClose: 1200,
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "¡Cerrar Sesion!",
+      text: "Estas seguro de cerrar?",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Si, cerrar!",
+      cancelButtonText: 'Cancelar'
     })
 
-    setTimeout(() => {
-      navigate("/signin")
-    }, 800);
+    if (result.isConfirmed) {
+      sessionStorage.removeItem("token")
+      sessionStorage.removeItem("user")
 
+      await Swal.fire({
+        icon: 'success',
+        title: 'Se ha cerrado la sesion',
+        timer: 1100,
+        confirmButtonText: "OK",
+
+      })
+
+      navigate('/signin')
+    }
   }
-
 
 
   function toggleDropdown() {
@@ -33,6 +47,45 @@ export default function UserDropdown() {
   function closeDropdown() {
     setIsOpen(false);
   }
+
+
+  useEffect(() => {
+    const updateName = () => {
+      try {
+        const userData = sessionStorage.getItem("user");
+        if (userData) {
+          const user = JSON.parse(userData);
+          setUserName(user.name || "Usuario");
+        } else {
+          setUserName("Usuario");
+        }
+      } catch (error) {
+        setUserName("Usuario");
+      }
+    };
+
+    // Actualizar al montar
+    updateName();
+
+    // Escuchar cambios en sessionStorage
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "user") {
+        updateName();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    // También verificar periódicamente (cada 2 segundos)
+    const interval = setInterval(updateName, 2000);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+
+
   return (
     <div className="relative">
       <button
@@ -43,7 +96,8 @@ export default function UserDropdown() {
           <img src="/images/user/owner.jpg" alt="User" />
         </span>
 
-        <span className="block mr-1 font-medium text-theme-sm">Andrés el GOAT</span>
+        <span className="block mr-1 font-medium text-theme-sm">{userName}
+        </span>
         <svg
           className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
             }`}
@@ -70,10 +124,7 @@ export default function UserDropdown() {
       >
         <div>
           <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-            Andrés el GOAT
-          </span>
-          <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
-            randomuser@pimjo.com
+            {userName}
           </span>
         </div>
 

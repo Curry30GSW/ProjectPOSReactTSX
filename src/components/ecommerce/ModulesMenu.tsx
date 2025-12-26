@@ -9,7 +9,7 @@ const ModulesGrid = () => {
     { id: "btnClientes", name: "Clientes", shortcut: "(F1)", icon: "fa fa-users", path: "/clientes" },
     { id: "btnArticulos", name: "Artículos", shortcut: "(F2)", icon: "fa fa-archive", path: "/articulos" },
     { id: "btnProveedores", name: "Proveedores", shortcut: "(F3)", icon: "fa fa-truck", path: "/proveedores" },
-    { id: "btnReportes", name: "Reportes", shortcut: "(F4)", icon: "fa fa-bar-chart", path: "/reportes" },
+    { id: "btnReportes", name: "Estadísticas", shortcut: "(F4)", icon: "fa fa-bar-chart", path: "/estadisticas" },
     { id: "btnFacturas", name: "Facturas", shortcut: "(F5)", icon: "fa fa-file-text-o", path: "/facturas" },
     { id: "btnEmpleados", name: "Empleados", shortcut: "(F6)", icon: "fa fa-id-badge", path: "/empleados" },
     { id: "btnCaja", name: "Caja", shortcut: "(F7)", icon: "fa fa-credit-card", path: "/caja" },

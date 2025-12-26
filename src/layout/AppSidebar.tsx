@@ -48,7 +48,9 @@ const navItems: NavItem[] = [
   {
     name: "Reportes",
     icon: <ListIcon />,
-    subItems: [{ name: "Menú Reportes", path: "/reportes", pro: false }],
+    subItems: [{ name: "Cierre de Caja", path: "/cierre", pro: false },
+    { name: "Estadisticas", path: "/estadisticas", pro: false }
+    ],
   },
   {
     name: "Producción",
@@ -74,8 +76,7 @@ const othersItems: NavItem[] = [
     icon: <PieChartIcon />,
     name: "Charts",
     subItems: [
-      { name: "Line Chart", path: "/line-chart", pro: false },
-      { name: "Bar Chart", path: "/bar-chart", pro: false },
+      { name: "Line Chart", path: "/line-chart", pro: false }
     ],
   },
   {
@@ -304,9 +305,9 @@ const AppSidebar: React.FC = () => {
           to="/"
           className="flex flex-row items-center justify-center gap-3 text-center"
         >
-          <span className="font-bold text-lg text-gray-900 dark:text-gray-100">
+          {/* <span className="font-bold text-lg text-gray-900 dark:text-gray-100">
             SISTEMA&nbsp;POS
-          </span>
+          </span> */}
 
           <div className="flex items-center justify-center">
             <img

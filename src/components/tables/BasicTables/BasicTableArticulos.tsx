@@ -7,6 +7,7 @@ import {
 } from "../../ui/table";
 
 import { useEffect, useState, useMemo } from "react";
+import { fetchWithAuth } from "../../api/fetchWithAuth";
 
 interface Articulo {
   id_articulo: number;
@@ -35,7 +36,7 @@ export default function ArticuloTable({ reload, onEditArticulo }: ArticuloTableP
     const fetchArticulos = async () => {
       try {
         setLoading(true);
-        const res = await fetch("http://localhost:3000/api/articulos");
+        const res = await fetchWithAuth("http://localhost:3000/api/articulos");
         const data = await res.json();
         setArticulos(data);
       } catch (error) {
