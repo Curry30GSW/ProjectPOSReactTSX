@@ -138,7 +138,7 @@ export default function CajaPOS() {
     useEffect(() => {
         const obtenerConsecutivo = async () => {
             try {
-                const respuesta = await fetchWithAuth("http://localhost:3000/api/facturas/consecutivo");
+                const respuesta = await fetchWithAuth("/api/facturas/consecutivo");
                 const data = await respuesta.json();
                 setConsecutivo(data.numeroFactura);
             } catch (error) {
@@ -156,7 +156,7 @@ export default function CajaPOS() {
         }
         const fetchCliente = async () => {
             try {
-                const response = await fetchWithAuth(`http://localhost:3000/api/clientes/cedula/${cedula}`);
+                const response = await fetchWithAuth(`/api/clientes/cedula/${cedula}`);
                 if (!response.ok) {
                     throw new Error("Cliente no encontrado");
                 }
@@ -241,7 +241,7 @@ export default function CajaPOS() {
     const agregarProductoLista = async ({ codigoONombre, cantidad, peso, descuento }) => {
         try {
             const resp = await fetchWithAuth(
-                `http://localhost:3000/api/articulos/buscar?q=${encodeURIComponent(codigoONombre)}`
+                `/api/articulos/buscar?q=${encodeURIComponent(codigoONombre)}`
             );
             if (!resp.ok) {
                 throw new Error(`Error HTTP: ${resp.status}`);
@@ -384,7 +384,7 @@ export default function CajaPOS() {
                 };
 
                 const metodo_pago = mapearMetodoPago(metodoPago);
-                const response = await fetchWithAuth('http://localhost:3000/api/facturas/guardar', {
+                const response = await fetchWithAuth('/api/facturas/guardar', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -392,6 +392,7 @@ export default function CajaPOS() {
                     body: JSON.stringify({
                         cedula: cedula || null,
                         total: total,
+                        totalIva: totalConIVA,
                         id_metodo: metodo_pago,
                         productos: productos.map(p => ({
                             id_articulo: p.id_articulo,
@@ -429,7 +430,7 @@ export default function CajaPOS() {
                     setClienteNombre("-");
 
                     const obtenerConsecutivo = async () => {
-                        const resp = await fetchWithAuth("http://localhost:3000/api/facturas/consecutivo");
+                        const resp = await fetchWithAuth("/api/facturas/consecutivo");
                         const data = await resp.json();
                         setConsecutivo(data.numeroFactura || data.length + 1);
                     };
@@ -503,7 +504,7 @@ export default function CajaPOS() {
 
     const verificarCajaHoy = async () => {
         try {
-            const response = await fetchWithAuth('http://localhost:3000/api/caja/hoy');
+            const response = await fetchWithAuth('/api/caja/hoy');
             const data = await response.json();
 
             if (data.existe) {
@@ -572,7 +573,7 @@ export default function CajaPOS() {
         setLoading(true);
 
         try {
-            const response = await fetchWithAuth('http://localhost:3000/api/caja', {
+            const response = await fetchWithAuth('/api/caja', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -700,7 +701,7 @@ export default function CajaPOS() {
     // Función para obtener el resumen de ventas del día
     const obtenerVentasDelDia = async () => {
         try {
-            const response = await fetchWithAuth(`http://localhost:3000/api/facturas/hoy`);
+            const response = await fetchWithAuth(`/api/facturas/hoy`);
             if (!response.ok) {
                 throw new Error('Error al obtener ventas del día');
             }
@@ -731,10 +732,9 @@ export default function CajaPOS() {
         ];
 
         ventas.forEach(venta => {
-            const total = parseFloat(venta.total) || 0;
+            const total = venta.total_iva || 0;
             totalVentas += total;
 
-            // Analizar el método de pago (viene como texto)
             const metodoPago = venta.metodo_pago || "";
 
             if (metodoPago.includes("Efectivo") && metodoPago.includes("Transferencia")) {
@@ -823,7 +823,7 @@ export default function CajaPOS() {
 
         try {
             // Verificar si ya existe cierre
-            const response = await fetchWithAuth('http://localhost:3000/api/verificar-hoy');
+            const response = await fetchWithAuth('/api/verificar-hoy');
             const data = await response.json();
 
             Swal.close();
@@ -1055,7 +1055,7 @@ export default function CajaPOS() {
         try {
             setLoading(true);
 
-            const res = await fetchWithAuth('http://localhost:3000/api/cierre/guardar', {
+            const res = await fetchWithAuth('/api/cierre/guardar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1148,7 +1148,7 @@ export default function CajaPOS() {
     const imprimirCierre = async (idCierre: number) => {
         try {
             const res = await fetchWithAuth(
-                `http://localhost:3000/api/cierres/detalles/${idCierre}`
+                `/api/cierres/detalles/${idCierre}`
             );
 
             const json = await res.json();
@@ -1361,7 +1361,7 @@ export default function CajaPOS() {
     //FUNCIÓN VER FACTURA
     const verFactura = async (idFactura) => {
         try {
-            const res = await fetchWithAuth(`http://localhost:3000/api/facturas/detalles/${idFactura}`);
+            const res = await fetchWithAuth(`/api/facturas/detalles/${idFactura}`);
             if (!res.ok) throw new Error("Error consultando la factura");
 
             const data = await res.json();
@@ -1619,7 +1619,7 @@ export default function CajaPOS() {
                                                             return;
                                                         }
                                                         try {
-                                                            const resp = await fetchWithAuth(`http://localhost:3000/api/articulos/buscar?q=${value}`);
+                                                            const resp = await fetchWithAuth(`/api/articulos/buscar?q=${value}`);
                                                             const data = await resp.json();
                                                             setSugerencias(data.data || []);
                                                             setMostrarSugerencias(true);
@@ -2166,7 +2166,7 @@ export default function CajaPOS() {
                                                     </TableCell>
                                                     <TableCell className="px-3 py-3">
                                                         <div className="font-semibold text-gray-900 dark:text-white">
-                                                            {formatearNumero(venta.total)}
+                                                            {formatearNumero(venta.total_iva)}
                                                         </div>
                                                     </TableCell>
                                                     <TableCell className="px-3 py-3">

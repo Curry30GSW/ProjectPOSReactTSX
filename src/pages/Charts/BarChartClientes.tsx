@@ -30,7 +30,7 @@ export default function BarChartClientes() {
         const fetchClientes = async () => {
             try {
                 setLoading(true);
-                const response = await fetchWithAuth('http://localhost:3000/api/top-clientes-mes');
+                const response = await fetchWithAuth('/api/top-clientes-mes');
 
                 if (!response.ok) {
                     throw new Error(`Error HTTP: ${response.status}`);

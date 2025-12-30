@@ -28,7 +28,7 @@ export default function BarChartProductos() {
         const fetchProductos = async () => {
             try {
                 setLoading(true);
-                const response = await fetchWithAuth('http://localhost:3000/api/top-productos-mes');
+                const response = await fetchWithAuth('/api/top-productos-mes');
 
                 if (!response.ok) {
                     throw new Error(`Error HTTP: ${response.status}`);

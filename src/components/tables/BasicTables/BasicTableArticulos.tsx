@@ -36,7 +36,7 @@ export default function ArticuloTable({ reload, onEditArticulo }: ArticuloTableP
     const fetchArticulos = async () => {
       try {
         setLoading(true);
-        const res = await fetchWithAuth("http://localhost:3000/api/articulos");
+        const res = await fetchWithAuth("/api/articulos");
         const data = await res.json();
         setArticulos(data);
       } catch (error) {

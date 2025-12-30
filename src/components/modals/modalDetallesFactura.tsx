@@ -42,7 +42,7 @@ export default function ModalDetallesFactura({
     if (!isOpen || !factura) return null;
 
     const { factura: facturaData, detalles } = factura;
-    
+
 
     const formatearNumero = (numero: string | number) => {
         const num = typeof numero === 'string' ? parseFloat(numero) : numero;
@@ -125,13 +125,13 @@ export default function ModalDetallesFactura({
 
         // Formatear valores numéricos
         const formatearNumero = (numero) => {
-        const num = Number(numero);
-        if (isNaN(num)) return "$ 0";
-        return `$ ${num.toLocaleString('es-CO', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        })}`;
-    };
+            const num = Number(numero);
+            if (isNaN(num)) return "$ 0";
+            return `$ ${num.toLocaleString('es-CO', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            })}`;
+        };
 
         // Calcular subtotales y IVA
         const subtotal = parseFloat(factura.total);
@@ -580,7 +580,7 @@ export default function ModalDetallesFactura({
         // Primero necesitas obtener los detalles de la factura
         const fetchDetallesFactura = async () => {
             try {
-                const response = await fetchWithAuth(`http://localhost:3000/api/facturas/detalles/${facturaCompleta.factura.id_factura}`);
+                const response = await fetchWithAuth(`/api/facturas/detalles/${facturaCompleta.factura.id_factura}`);
                 if (!response.ok) throw new Error('Error al obtener detalles');
 
                 const data = await response.json();

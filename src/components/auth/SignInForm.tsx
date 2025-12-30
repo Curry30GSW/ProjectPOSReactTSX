@@ -6,18 +6,20 @@ import Button from "../ui/button/Button";
 import { useNavigate } from "react-router";
 import ToastModal from "../ToastModal";
 import Swal from "sweetalert2";
+import { useAuth } from "../../context/authContext"
+
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [cedula, setCedula] = useState("");
   const [password, setPassword] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMensaje("");
 
@@ -27,35 +29,14 @@ export default function SignInForm() {
     }
 
     try {
+      setIsLoading(true);
 
-      const response = await fetch("http://localhost:3000/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const result = await login(cedula, password);
 
-        },
-        body: JSON.stringify({ cedula, password })
-        // "Authorization" : `Bearer ${token}`,
-      });
-
-      const data = await response.json();
-
-      // Primero valida si está bien
-      if (!response.ok || !data.token) {
-        const backendMessage = data.mensaje || data.message || "Error al iniciar sesión";
-        setMensaje(backendMessage);
+      if (!result.success) {
+        setMensaje(result.message || "Error al iniciar sesión");
         return;
       }
-
-      sessionStorage.setItem("token", data.token);
-
-      sessionStorage.setItem("user", JSON.stringify({
-
-        cedula: data.user.cedula,
-        name: `${data.user.nombres} ${data.user.apellidos}`
-      }))
-
-
 
       Swal.fire({
         icon: "success",
@@ -68,23 +49,15 @@ export default function SignInForm() {
       });
 
     } catch (error) {
-      console.error("Error", error)
+      console.error("Error:", error);
+      setMensaje("Error inesperado. Por favor intenta nuevamente.");
+    } finally {
+      setIsLoading(false);
     }
-
   };
 
   return (
-
     <div className="flex flex-col flex-1">
-
-      <ToastModal
-        show={toast.show}
-        message={toast.message}
-        type={toast.type}
-        onClose={() => setToast({ ...toast, show: false })}
-      />
-
-
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-8">
@@ -92,20 +65,21 @@ export default function SignInForm() {
               Iniciar Sesión
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Ingresa tu correo electrónico y contraseña para iniciar sesión.
+              Ingresa tu usuario y contraseña para iniciar sesión.
             </p>
           </div>
           <div>
-
             <form onSubmit={handleSubmit}>
               <div className="space-y-6">
                 <div>
                   <Label>
-                    Usuario <span className="text-error-500">*</span>{" "}
+                    Usuario (Cédula) <span className="text-error-500">*</span>{" "}
                   </Label>
-                  <Input placeholder="Ingresa tu usuario"
+                  <Input
+                    placeholder="Ingresa tu cédula"
                     value={cedula}
                     onChange={(e) => setCedula(e.target.value)}
+                    disabled={isLoading}
                   />
                 </div>
                 <div>
@@ -118,9 +92,10 @@ export default function SignInForm() {
                       placeholder="Ingresa tu contraseña"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      disabled={isLoading}
                     />
                     <span
-                      onClick={() => setShowPassword(!showPassword)}
+                      onClick={() => !isLoading && setShowPassword(!showPassword)}
                       className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
                     >
                       {showPassword ? (
@@ -133,13 +108,18 @@ export default function SignInForm() {
                 </div>
                 <div>
                   {mensaje && (
-                    <p className={`text-center text-sm  text-warning-700 }`}>
+                    <p className="text-center text-sm text-warning-700 mb-2">
                       {mensaje}
                     </p>
                   )}
 
-                  <Button className="w-full" size="sm">
-                    Iniciar Sesión
+                  <Button
+                    className="w-full"
+                    size="sm"
+                    type="submit"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
                   </Button>
                 </div>
               </div>

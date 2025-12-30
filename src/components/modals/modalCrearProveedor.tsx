@@ -84,11 +84,11 @@ export default function ModalCrearProveedor({
 
             if (modo === 'crear') {
                 // Crear nuevo cliente
-                url = "http://localhost:3000/api/proveedores";
+                url = "/api/proveedores";
                 method = "POST";
             } else {
                 // Editar cliente existente
-                url = `http://localhost:3000/api/proveedores/${proveedorEditando?.id_proveedor}`;
+                url = `/api/proveedores/${proveedorEditando?.id_proveedor}`;
                 method = "PUT";
             }
 

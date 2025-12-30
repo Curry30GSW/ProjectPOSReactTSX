@@ -10,7 +10,7 @@ export default function estadisticas() {
   const [totalClientes, setTotalClientes] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchWithAuth("http://localhost:3000/api/total-clientes")
+    fetchWithAuth("/api/total-clientes")
       .then(res => res.json())
       .then(data => {
         if (data.success) {

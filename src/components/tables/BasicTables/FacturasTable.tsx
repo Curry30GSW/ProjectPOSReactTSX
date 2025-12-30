@@ -4,6 +4,7 @@ import { formatFechaHora } from "../../utils/formatFechaHora";
 import { getMetodoPagoStyles } from "../../utils/getMetodoPagoStyles";
 import ModalDetallesFactura from '../../modals/ModalDetallesFactura';
 
+
 interface Factura {
     id_factura: number;
     fecha_venta: string;
@@ -38,13 +39,12 @@ export default function FacturasTable({ filtros }: FacturasTableProps) {
     const [mostrarModalFactura, setMostrarModalFactura] = useState(false);
 
 
-
     const fetchFacturas = async () => {
         try {
             setLoading(true);
             setError(null);
 
-            let url = "http://localhost:3000/api/facturas/search";
+            let url = "/api/facturas/search";
 
             // Construir URL según los filtros
             if (filtros) {
@@ -60,29 +60,29 @@ export default function FacturasTable({ filtros }: FacturasTableProps) {
                     case "periodo":
                         if (filtros.periodo === "dia") {
                             // Endpoint para facturas del día
-                            url = `http://localhost:3000/api/facturas/hoy`;
+                            url = `/api/facturas/hoy`;
                         } else if (filtros.periodo === "semana") {
                             // Endpoint para facturas de la semana
-                            url = "http://localhost:3000/api/facturas/semana";
+                            url = "/api/facturas/semana";
                         } else if (filtros.periodo === "mes") {
                             // Endpoint para facturas del mes
-                            url = "http://localhost:3000/api/facturas/mes";
+                            url = "/api/facturas/mes";
                         }
                         break;
 
                     case "estado":
                         // Endpoint para facturas por estado
-                        url = `http://localhost:3000/api/facturas/estado?estado=${filtros.valor}`;
+                        url = `/api/facturas/estado?estado=${filtros.valor}`;
                         break;
 
                     default:
                         // Endpoint para todas las facturas (con paginación)
-                        url = "http://localhost:3000/api/facturas";
+                        url = "/api/facturas";
                         break;
                 }
             } else {
                 // Sin filtros - traer todas
-                url = "http://localhost:3000/api/facturas";
+                url = "/api/facturas";
             }
 
             console.log("Fetching from URL:", url); // Para debug
@@ -94,6 +94,8 @@ export default function FacturasTable({ filtros }: FacturasTableProps) {
             }
 
             const data = await response.json();
+            console.log(data);
+
 
             // Validar que data sea un array
             if (!Array.isArray(data)) {
@@ -105,7 +107,7 @@ export default function FacturasTable({ filtros }: FacturasTableProps) {
             // Calcular estadísticas
             if (data.length > 0) {
                 const montoTotal = data.reduce(
-                    (sum: number, factura: Factura) => sum + parseFloat(factura.total),
+                    (sum: number, factura: Factura) => sum + Number(factura.total_iva),
                     0
                 );
                 const promedio = montoTotal / data.length;
@@ -140,10 +142,9 @@ export default function FacturasTable({ filtros }: FacturasTableProps) {
         fetchFacturas();
     }, [filtros]);
 
-
     const handleVerDetalle = async (idFactura) => {
         try {
-            const res = await fetchWithAuth(`http://localhost:3000/api/facturas/detalles/${idFactura}`);
+            const res = await fetchWithAuth(`/api/facturas/detalles/${idFactura}`);
             if (!res.ok) throw new Error("Error consultando la factura");
 
             const data = await res.json();
@@ -158,7 +159,7 @@ export default function FacturasTable({ filtros }: FacturasTableProps) {
     const handleDescargarPDF = async (id: number, numero: string) => {
         try {
             // Asumiendo que tienes un endpoint para PDF
-            const response = await fetchWithAuth(`http://localhost:3000/api/facturas/${id}/pdf`);
+            const response = await fetchWithAuth(`/api/facturas/${id}/pdf`);
 
             if (!response.ok) {
                 throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -181,7 +182,7 @@ export default function FacturasTable({ filtros }: FacturasTableProps) {
 
     const handleReenviarEmail = async (id: number) => {
         try {
-            const response = await fetchWithAuth(`http://localhost:3000/api/facturas/${id}/reenviar-email`, {
+            const response = await fetchWithAuth(`/api/facturas/${id}/reenviar-email`, {
                 method: 'POST'
             });
 
@@ -214,7 +215,7 @@ export default function FacturasTable({ filtros }: FacturasTableProps) {
                 }
             }
 
-            const response = await fetchWithAuth(`http://localhost:3000/api/facturas/exportar?${params.toString()}`);
+            const response = await fetchWithAuth(`/api/facturas/exportar?${params.toString()}`);
 
             if (!response.ok) {
                 throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -539,7 +540,7 @@ export default function FacturasTable({ filtros }: FacturasTableProps) {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm font-bold text-gray-900 dark:text-white">
-                                            ${Number(factura.total).toLocaleString("es-CO")}
+                                            ${Number(factura.total_iva).toLocaleString("es-CO")}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">

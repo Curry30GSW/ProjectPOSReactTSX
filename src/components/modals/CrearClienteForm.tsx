@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { fetchWithAuth } from "../api/fetchWithAuth";
 
 interface Cliente {
     id_cliente?: number;
@@ -31,8 +32,8 @@ export default function CrearClienteForm({
     onClose,
 }: Props) {
     const [cliente, setCliente] = useState<Cliente>({
-        nombre: "",
         cedula: "",
+        nombre: "",
         correo: "",
         telefono: "",
     });
@@ -42,8 +43,8 @@ export default function CrearClienteForm({
             setCliente(clienteEditando);
         } else {
             setCliente({
-                nombre: "",
                 cedula: "",
+                nombre: "",
                 correo: "",
                 telefono: "",
             });
@@ -60,12 +61,12 @@ export default function CrearClienteForm({
         try {
             const url =
                 modo === "crear"
-                    ? "http://localhost:3000/api/clientes"
-                    : `http://localhost:3000/api/clientes/${clienteEditando?.id_cliente}`;
+                    ? "/api/clientes"
+                    : `/api/clientes/${clienteEditando?.id_cliente}`;
 
             const method = modo === "crear" ? "POST" : "PUT";
 
-            const res = await fetch(url, {
+            const res = await fetchWithAuth(url, {
                 method,
                 headers: {
                     "Content-Type": "application/json",
@@ -98,19 +99,6 @@ export default function CrearClienteForm({
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm text-gray-600 dark:text-gray-300">
-                        Nombre
-                    </label>
-                    <input
-                        type="text"
-                        name="nombre"
-                        value={cliente.nombre}
-                        onChange={handleChange}
-                        required
-                        className={inputBase}
-                    />
-                </div>
 
                 <div>
                     <label className="block text-sm text-gray-600 dark:text-gray-300">
@@ -125,7 +113,19 @@ export default function CrearClienteForm({
                         className={inputBase}
                     />
                 </div>
-
+                <div>
+                    <label className="block text-sm text-gray-600 dark:text-gray-300">
+                        Nombre
+                    </label>
+                    <input
+                        type="text"
+                        name="nombre"
+                        value={cliente.nombre}
+                        onChange={handleChange}
+                        required
+                        className={inputBase}
+                    />
+                </div>
                 <div>
                     <label className="block text-sm text-gray-600 dark:text-gray-300">
                         Correo

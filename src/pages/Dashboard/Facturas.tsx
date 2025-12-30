@@ -2,6 +2,10 @@ import { useState } from "react";
 import PageMeta from "../../components/common/PageMeta";
 import ModalBuscarFactura from "../../components/modals/ModalBuscarFactura.tsx";
 import FacturasTable from "../../components/tables/BasicTables/FacturasTable.tsx";
+import * as XLSX from 'xlsx';
+import { fetchWithAuth } from "../../components/api/fetchWithAuth.ts";
+import { showLoading, showSuccess, showError, showConfirm, getSwalConfig } from "../../components/utils/swalConfig.ts";
+import Swal from 'sweetalert2';
 
 interface FiltrosFactura {
     tipo?: string;
@@ -15,6 +19,130 @@ export default function FacturasPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [filtrosActivos, setFiltrosActivos] = useState<FiltrosFactura | null>(null);
     const [tituloVista, setTituloVista] = useState("Gestión de Facturas");
+
+    const handleExportarExcelHoy = async () => {
+        try {
+            const hoy = new Date().toISOString().split('T')[0];
+            const config = getSwalConfig();
+
+            showLoading('Exportando facturas', 'Obteniendo las facturas del día de hoy...');
+
+            const response = await fetchWithAuth(`/api/facturas/hoy`);
+
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+
+            const facturas = await response.json();
+
+            if (!Array.isArray(facturas) || facturas.length === 0) {
+                showError('Sin datos', 'No hay facturas para exportar hoy');
+                return;
+            }
+
+            Swal.close();
+
+            // Calcular estadísticas
+            const totalVendido = facturas.reduce((sum: number, f: any) => sum + parseFloat(f.total), 0);
+            const promedio = totalVendido / facturas.length;
+
+            // Pedir confirmación
+            const confirmResult = await showConfirm(
+                'Confirmar exportación',
+                `
+                <div style="text-align: left; margin: 1rem 0;">
+                    <p><strong>Resumen de facturas de hoy:</strong></p>
+                    <p>• Total de facturas: <strong>${facturas.length}</strong></p>
+                    <p>• Total vendido: <strong>$${Number(totalVendido).toLocaleString('es-ES')}</strong></p>
+                    <p>• Promedio por factura: <strong>$${Number(promedio).toLocaleString('es-ES')}</strong></p>
+                </div>
+            `,
+                'Exportar a Excel'
+            );
+
+            if (!confirmResult.isConfirmed) {
+                return;
+            }
+
+
+            // Preparar datos para Excel
+            const datosExcel = facturas.map(factura => ({
+                'No. Factura': factura.id_factura,
+                'Fecha - Hora': new Date(factura.fecha_venta).toLocaleString('es-ES'),
+                'Cliente': factura.nombre,
+                'Cédula': factura.cedula,
+                'Subtotal': `$${(Number(factura.total)).toLocaleString('es-ES')}`,
+                'IVA (19%)': `$${(Number(factura.total) * 0.19).toLocaleString('es-ES')}`,
+                'Método Pago': factura.metodo_pago,
+                'Total Venta': `$${Number(factura.total_iva).toLocaleString('es-ES')}`
+            }));
+
+            // Crear hoja de cálculo
+            const worksheet = XLSX.utils.json_to_sheet(datosExcel);
+
+            // Agregar totales al final
+            const totalFacturas = facturas.length;
+
+
+            const datosTotales = [
+                {}, // fila vacía
+                {
+                    'No. Factura': 'ESTADÍSTICAS',
+                    'Fecha': '',
+                    'Cliente': '',
+                    'Cédula': '',
+                    'Subtotal': '',
+                    'IVA (19%)': '',
+                    'Método Pago': '',
+                    'Total Venta': ''
+                },
+                {
+                    'No. Factura': 'Total Facturas:',
+                    'Total Venta': totalFacturas
+                },
+                {
+                    'No. Factura': 'Total Vendido:',
+                    'Total Venta': `$${Number(totalVendido).toLocaleString('es-ES')}`
+
+                },
+                {
+                    'No. Factura': 'Promedio por Factura:',
+                    'Total Venta': `$${Number(promedio).toLocaleString('es-ES')}`
+                }
+            ];
+
+            const worksheetTotales = XLSX.utils.json_to_sheet(datosTotales, { skipHeader: true });
+            XLSX.utils.sheet_add_json(worksheet, datosTotales, { skipHeader: true, origin: -1 });
+
+            // Crear libro de trabajo
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Facturas de Hoy');
+
+            // Generar archivo Excel
+            const fechaActual = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(workbook, `facturas-hoy-${fechaActual}.xlsx`);
+
+            showSuccess(
+                '✅ Exportación exitosa',
+                `
+                <div style="text-align: center;">
+                    <p><strong>Facturas exportadas exitosamente</strong></p>
+                    <div style="text-align: left; background: ${config.background === '#1f2937' ? '#374151' : '#f3f4f6'}; padding: 1rem; border-radius: 0.5rem; margin: 1rem 0;">
+                        <p style="margin: 0.5rem 0;">📋 <strong>Archivo:</strong> facturas-hoy-${hoy}.xls</p>
+                        <p style="margin: 0.5rem 0;">📄 <strong>Facturas exportadas:</strong> ${facturas.length}</p>
+                        <p style="margin: 0.5rem 0;">💰 <strong>Total vendido:</strong> $${Number(totalVendido).toLocaleString('es-ES')}</p>
+                    </div>
+                </div>
+            `,
+                4000
+            );
+
+
+        } catch (error: any) {
+            console.error("Error exportando a Excel:", error);
+            alert(`❌ Error al exportar: ${error.message}`);
+        }
+    };
 
     const acciones = [
         {
@@ -35,10 +163,10 @@ export default function FacturasPage() {
             descripcion: "Muestra todas las facturas emitidas hoy",
             icono: (
                 <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             ),
-            color: "bg-green-500 hover:bg-green-600",
+            color: "bg-red-500 hover:bg-red-600",
             accion: () => {
                 const hoy = new Date().toISOString().split('T')[0];
                 setFiltrosActivos({ tipo: "periodo", periodo: "dia", fecha: hoy });
@@ -79,35 +207,29 @@ export default function FacturasPage() {
             }
         },
         {
-            id: "pendientes",
-            titulo: "Facturas Pendientes",
-            descripcion: "Muestra facturas con pagos pendientes",
+            id: "exportar-hoy",
+            titulo: "Exportar a Excel",
+            descripcion: "Exporta a Excel todas las facturas realizadas el día de hoy",
             icono: (
                 <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
             ),
-            color: "bg-red-500 hover:bg-red-600",
-            accion: () => {
-                setFiltrosActivos({ tipo: "estado", valor: "pendiente" });
-                setTituloVista("Facturas Pendientes");
-                setVistaActual("tabla");
-            }
+            color: "bg-green-500 hover:bg-green-600",
+            accion: () => handleExportarExcelHoy()
         },
         {
-            id: "todas",
-            titulo: "Todas las Facturas",
-            descripcion: "Muestra el historial completo de facturas",
+            id: "buscar-fecha",
+            titulo: "Buscar Factura por Fecha",
+            descripcion: "Permite ver facturas emitidas en un rango de fecha específico",
             icono: (
                 <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
             ),
-            color: "bg-gray-500 hover:bg-gray-600",
+            color: "bg-indigo-500 hover:bg-indigo-600",
             accion: () => {
-                setFiltrosActivos(null);
-                setTituloVista("Todas las Facturas");
-                setVistaActual("tabla");
+                setIsFechaModalOpen(true);
             }
         }
     ];

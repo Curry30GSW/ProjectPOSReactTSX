@@ -28,7 +28,7 @@ const GestionCierresCaja = () => {
     const obtenerCierresCaja = async () => {
         try {
             setLoading(true);
-            const response = await fetchWithAuth('http://localhost:3000/api/cierres');
+            const response = await fetchWithAuth('/api/cierres');
 
             if (response.ok) {
                 const data = await response.json();
@@ -58,7 +58,7 @@ const GestionCierresCaja = () => {
 
     const obtenerestadisticas = async () => {
         try {
-            const response = await fetchWithAuth('http://localhost:3000/api/cierres/estadisticas');
+            const response = await fetchWithAuth('/api/cierres/estadisticas');
             if (response.ok) {
                 const data = await response.json();
                 setestadisticas(data.data);
@@ -78,7 +78,7 @@ const GestionCierresCaja = () => {
         try {
             setLoading(true);
             const response = await fetchWithAuth(
-                `http://localhost:3000/api/cierres/filtrar?fecha=${filtroFecha}`
+                `/api/cierres/filtrar?fecha=${filtroFecha}`
             );
 
 
@@ -120,7 +120,7 @@ const GestionCierresCaja = () => {
     const verDetalles = async (idCierre) => {
         try {
             setLoadingDetalles(true);
-            const response = await fetchWithAuth(`http://localhost:3000/api/cierres/detalles/${idCierre}`);
+            const response = await fetchWithAuth(`/api/cierres/detalles/${idCierre}`);
 
             if (response.ok) {
                 const data = await response.json();
@@ -142,7 +142,7 @@ const GestionCierresCaja = () => {
     const imprimirReporte = async (idCierre) => {
         try {
             const res = await fetchWithAuth(
-                `http://localhost:3000/api/cierres/detalles/${idCierre}`
+                `/api/cierres/detalles/${idCierre}`
             );
 
             if (!res.ok) {
@@ -344,7 +344,7 @@ const GestionCierresCaja = () => {
 
         if (observaciones) {
             try {
-                const response = await fetchWithAuth(`http://localhost:3000/api/cierres/${idCierre}/observaciones`, {
+                const response = await fetchWithAuth(`/api/cierres/${idCierre}/observaciones`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',

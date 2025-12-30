@@ -65,7 +65,7 @@ const ModalDetallesCierre = ({
     const verFactura = async (idFactura) => {
         try {
             setLoadingFactura(true);
-            const res = await fetchWithAuth(`http://localhost:3000/api/facturas/detalles/${idFactura}`);
+            const res = await fetchWithAuth(`/api/facturas/detalles/${idFactura}`);
 
             if (!res.ok) {
                 throw new Error("Error consultando la factura");

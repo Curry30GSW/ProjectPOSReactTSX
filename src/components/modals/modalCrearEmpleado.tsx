@@ -99,11 +99,11 @@ export default function ModalCrearCliente({
 
             if (modo === 'crear') {
                 // Crear nuevo cliente
-                url = "http://localhost:3000/api/empleados";
+                url = "/api/empleados";
                 method = "POST";
             } else {
                 // Editar cliente existente
-                url = `http://localhost:3000/api/empleados/${empleadoEditando?.id_empleado}`;
+                url = `/api/empleados/${empleadoEditando?.id_empleado}`;
                 method = "PUT";
             }
 

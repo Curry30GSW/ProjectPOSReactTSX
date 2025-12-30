@@ -36,7 +36,7 @@ export default function ProveedorTable({ reload, onEditProveedor }: ProveedorTab
     const fetchProveedores = async () => {
       try {
         setLoading(true);
-        const res = await fetchWithAuth("http://localhost:3000/api/proveedores");
+        const res = await fetchWithAuth("/api/proveedores");
         const data = await res.json();
         setProveedor(data);
       } catch (error) {

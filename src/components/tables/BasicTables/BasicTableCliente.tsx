@@ -36,7 +36,7 @@ export default function ClientesTable({ reload, onEditCliente }: ClientesTablePr
     const fetchClientes = async () => {
       try {
         setLoading(true);
-        const res = await fetchWithAuth("http://localhost:3000/api/clientes");
+        const res = await fetchWithAuth("/api/clientes");
         const data = await res.json();
         setClientes(data);
       } catch (error) {

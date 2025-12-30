@@ -87,11 +87,11 @@ export default function ModalCrearArticulo({
 
             if (modo === 'crear') {
                 // Crear nuevo cliente
-                url = "http://localhost:3000/api/insertar-articulos";
+                url = "/api/insertar-articulos";
                 method = "POST";
             } else {
                 // Editar cliente existente
-                url = `http://localhost:3000/api/actualizar-articulos/${articuloEditando?.id_articulo}`;
+                url = `/api/actualizar-articulos/${articuloEditando?.id_articulo}`;
                 method = "PUT";
             }
 

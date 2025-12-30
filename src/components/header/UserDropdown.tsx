@@ -1,44 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { useNavigate } from "react-router";
-
-import Swal from "sweetalert2"
+import Swal from "sweetalert2";
+import { useAuth } from "../../context/AuthContext";
+import { Avatar } from "../ui/avatar/AvatarEdit";
+import { showConfirmDialog, showSuccess } from '../utils/swalConfig';
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  const [userName, setUserName] = useState("Usuario");
+  const { user, loading } = useAuth();
 
 
   const handleLogout = async () => {
-    const result = await Swal.fire({
-      icon: "warning",
-      title: "¡Cerrar Sesion!",
-      text: "Estas seguro de cerrar?",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Si, cerrar!",
-      cancelButtonText: 'Cancelar'
-    })
+    const result = await showConfirmDialog(
+      '¡Cerrar Sesión!',
+      '¿Estás seguro de cerrar sesión?',
+      'Sí, cerrar!',
+      'Cancelar',
+      'warning'
+    );
 
     if (result.isConfirmed) {
-      sessionStorage.removeItem("token")
-      sessionStorage.removeItem("user")
+      await showSuccess('Se ha cerrado la sesión', '', 1100);
 
-      await Swal.fire({
-        icon: 'success',
-        title: 'Se ha cerrado la sesion',
-        timer: 1100,
-        confirmButtonText: "OK",
-
-      })
-
-      navigate('/signin')
+      navigate('/signin');
     }
-  }
-
+  };
 
   function toggleDropdown() {
     setIsOpen(!isOpen);
@@ -48,59 +37,61 @@ export default function UserDropdown() {
     setIsOpen(false);
   }
 
+  const getInitials = (nombres?: string, apellidos?: string) => {
+    if (!nombres || !apellidos) return "U";
 
-  useEffect(() => {
-    const updateName = () => {
-      try {
-        const userData = sessionStorage.getItem("user");
-        if (userData) {
-          const user = JSON.parse(userData);
-          setUserName(user.name || "Usuario");
-        } else {
-          setUserName("Usuario");
-        }
-      } catch (error) {
-        setUserName("Usuario");
-      }
-    };
+    const firstInitial = nombres.charAt(0).toUpperCase();
+    const lastInitial = apellidos.charAt(0).toUpperCase();
 
-    // Actualizar al montar
-    updateName();
+    return `${firstInitial}${lastInitial}`;
+  };
 
-    // Escuchar cambios en sessionStorage
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "user") {
-        updateName();
-      }
-    };
+  // Mostrar skeleton mientras carga
+  if (loading) {
+    return (
+      <div className="flex items-center">
+        <div className="mr-3 overflow-hidden rounded-full h-11 w-11 bg-gray-200 animate-pulse dark:bg-gray-700"></div>
+        <div className="h-4 bg-gray-200 rounded w-24 animate-pulse dark:bg-gray-700"></div>
+      </div>
+    );
+  }
 
-    window.addEventListener("storage", handleStorageChange);
+  // Si no hay usuario, mostrar botón de login
+  if (!user) {
+    return (
+      <button
+        onClick={() => navigate('/signin')}
+        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+      >
+        Iniciar Sesión
+      </button>
+    );
+  }
 
-    // También verificar periódicamente (cada 2 segundos)
-    const interval = setInterval(updateName, 2000);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      clearInterval(interval);
-    };
-  }, []);
-
+  const fullName = `${user.nombres} ${user.apellidos}`;
+  const initials = getInitials(user.nombres, user.apellidos);
 
   return (
     <div className="relative">
       <button
         onClick={toggleDropdown}
-        className="flex items-center text-gray-700 dropdown-toggle dark:text-gray-400"
+        className="flex items-center text-gray-700 dropdown-toggle dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 transition-colors"
+        aria-label="Menú de usuario"
+        aria-expanded={isOpen}
       >
-        <span className="mr-3 overflow-hidden rounded-full h-11 w-11">
-          <img src="/images/user/owner.jpg" alt="User" />
-        </span>
+        <div className="mr-3">
+          <Avatar
+            src={user.foto_perfil || null}
+            initials={initials}
+            size="md"
+          />
+        </div>
 
-        <span className="block mr-1 font-medium text-theme-sm">{userName}
+        <span className="block mr-1 font-medium text-theme-sm max-w-[120px] truncate">
+          {fullName}
         </span>
         <svg
-          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""
-            }`}
+          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
           width="18"
           height="20"
           viewBox="0 0 18 20"
@@ -122,13 +113,23 @@ export default function UserDropdown() {
         onClose={closeDropdown}
         className="absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
       >
-        <div>
+        <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-800">
           <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-            {userName}
+            {fullName}
           </span>
+          {user.cargo && (
+            <span className="block text-xs text-gray-500 dark:text-gray-400">
+              {user.cargo}
+            </span>
+          )}
+          {user.correo && (
+            <span className="block text-xs text-gray-500 dark:text-gray-400 truncate">
+              {user.correo}
+            </span>
+          )}
         </div>
 
-        <ul className="flex flex-col gap-1 pt-4 pb-3 border-b border-gray-200 dark:border-gray-800">
+        <ul className="flex flex-col gap-1 pt-4 pb-3">
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
@@ -151,14 +152,14 @@ export default function UserDropdown() {
                   fill=""
                 />
               </svg>
-              Edit profile
+              Mi Perfil
             </DropdownItem>
           </li>
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
-              to="/profile"
+              to="/account"
               className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
             >
               <svg
@@ -176,41 +177,14 @@ export default function UserDropdown() {
                   fill=""
                 />
               </svg>
-              Account settings
-            </DropdownItem>
-          </li>
-          <li>
-            <DropdownItem
-              onItemClick={closeDropdown}
-              tag="a"
-              to="/profile"
-              className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-            >
-              <svg
-                className="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M3.5 12C3.5 7.30558 7.30558 3.5 12 3.5C16.6944 3.5 20.5 7.30558 20.5 12C20.5 16.6944 16.6944 20.5 12 20.5C7.30558 20.5 3.5 16.6944 3.5 12ZM12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM11.0991 7.52507C11.0991 8.02213 11.5021 8.42507 11.9991 8.42507H12.0001C12.4972 8.42507 12.9001 8.02213 12.9001 7.52507C12.9001 7.02802 12.4972 6.62507 12.0001 6.62507H11.9991C11.5021 6.62507 11.0991 7.02802 11.0991 7.52507ZM12.0001 17.3714C11.5859 17.3714 11.2501 17.0356 11.2501 16.6214V10.9449C11.2501 10.5307 11.5859 10.1949 12.0001 10.1949C12.4143 10.1949 12.7501 10.5307 12.7501 10.9449V16.6214C12.7501 17.0356 12.4143 17.3714 12.0001 17.3714Z"
-                  fill=""
-                />
-              </svg>
-              Support
+              Configuración
             </DropdownItem>
           </li>
         </ul>
-        <button onClick={handleLogout}
-
+        <button
+          onClick={handleLogout}
           className="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
         >
-
-
           <svg
             className="fill-gray-500 group-hover:fill-gray-700 dark:group-hover:fill-gray-300"
             width="24"
@@ -226,7 +200,7 @@ export default function UserDropdown() {
               fill=""
             />
           </svg>
-          Sign out
+          Cerrar Sesión
         </button>
       </Dropdown>
     </div>
